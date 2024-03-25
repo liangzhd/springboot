@@ -4,11 +4,16 @@ import jakarta.validation.constraints.Pattern;
 import org.example.bigevent.pojo.User;
 import org.example.bigevent.pojo.Result;
 import org.example.bigevent.service.UserService;
+import org.example.bigevent.utils.JwtUtil;
+import org.example.bigevent.utils.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -27,7 +32,7 @@ public class UserController {
 //        if (username != null && password != null &&
 //                username.length() > 5 && password.length() > 5 &&
 //                username.length() <= 16 && password.length() <= 16) {
-            // 查询
+            // 查询用户是否存在
             User u = userService.findByUserName(username);
             if (u == null) {
                 // 注册
@@ -39,5 +44,21 @@ public class UserController {
 //        } else {
 //            return Result.error("用户名或密码格式不正确");
 //        }
+    }
+    @PostMapping("/login")
+    public Result<String> login(@Pattern(regexp = "^\\S{6,16}$") String username, @Pattern(regexp = "^\\S{6,16}$") String password) {
+        // 查询用户是否存在
+        User loginUser = userService.findByUserName(username);
+        if (loginUser == null){
+            return Result.error("用户名不存在");
+        }
+        if (Md5Util.getMD5String(password).equals(loginUser.getPassword())){
+            // 登录成功,生成token
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("id", loginUser.getId());
+            claims.put("username", loginUser.getUsername());
+            return Result.success(JwtUtil.getToken(claims));
+        }
+        return Result.error("密码错误");
     }
 }
