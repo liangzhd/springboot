@@ -44,6 +44,9 @@ public class UserController {
 //            return Result.error("用户名或密码格式不正确");
 //        }
     }
+    /**
+     *登录
+     */
     @PostMapping("/login")
     public Result<String> login(@Pattern(regexp = "^\\S{6,16}$") String username, @Pattern(regexp = "^\\S{6,16}$") String password) {
         // 查询用户是否存在
@@ -61,6 +64,9 @@ public class UserController {
         return Result.error("密码错误");
     }
 
+    /**
+     * 获取用户信息
+     */
     @GetMapping("/userInfo")
     public Result<User> getUserInfo(/*@RequestHeader(name = "Authorization") String token*/) {
 
@@ -70,5 +76,14 @@ public class UserController {
         String username = (String)map.get("username");
         User user = userService.findByUserName(username);
         return Result.success(user);
+    }
+
+    /**
+     * 更新用户信息
+     */
+    @PutMapping("/update")
+    public Result update(@RequestBody @Validated User user) {
+        userService.update(user);
+        return Result.success();
     }
 }
